@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Standby Display
+Comment=Google Calendar and Weather Display
+Exec=/home/daikimura/standby_env/bin/python /home/daikimura/standby/standby-pygame.py
+Icon=/home/daikimura/standby/icon.png
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupNotify=true

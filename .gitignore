@@ -1,0 +1,35 @@
+# 秘密情報・個人情報
+credentials.json
+token_*.pickle
+.env
+
+# Python関連
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 仮想環境
+venv/
+ENV/
+env/
+standby_env/
+
+# その他
+.DS_Store
+*.log
