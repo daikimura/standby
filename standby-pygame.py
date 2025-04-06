@@ -392,7 +392,13 @@ if __name__ == '__main__':
     # コマンドライン引数の設定
     parser = argparse.ArgumentParser(description='Standby Display')
     parser.add_argument('--window', action='store_true', help='ウィンドウモードで起動 (デフォルトはフルスクリーン)')
+    parser.add_argument('--cwd', help='作業ディレクトリを指定')
     args = parser.parse_args()
+    
+    # 作業ディレクトリの変更（指定された場合）
+    if args.cwd:
+        os.chdir(args.cwd)
+        print(f"作業ディレクトリを変更: {args.cwd}")
     
     # フルスクリーンかウィンドウかを引数で切り替え
     display = StandbyDisplay(fullscreen=not args.window)
