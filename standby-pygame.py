@@ -81,11 +81,13 @@ class StandbyDisplay:
 
         # 最後の更新時刻を保存
         self.last_weather_update = int(time.time())
+        self.last_ui_update = int(time.time())
 
         self._weather_cache = None
         self._calendar_cache = None
 
         self.last_api_update = 0
+        self.ui_update_interval = 300  # 右側UI更新間隔: 5分ごと（API更新と同じ）
 
         # API更新用のスレッドを開始
         self.api_thread = threading.Thread(target=self._update_api_data, daemon=True)
@@ -95,14 +97,17 @@ class StandbyDisplay:
         """APIデータを定期的に更新するスレッド"""
         while True:
             current_time = time.time()
-            if current_time - self.last_api_update > 300:  # 5分間隔
+            api_update_interval = self.ui_update_interval  # 同じ間隔で更新（5分ごと）
+            if current_time - self.last_api_update > api_update_interval:
                 try:
                     self._weather_cache = self.fetch_weather()
                     self._calendar_cache = self.fetch_calendar_events()
                     self.last_api_update = current_time
+                    # 右側UIも同時に再描画するようフラグを設定（次のメインループで描画される）
+                    self.last_ui_update = 0
                 except Exception as e:
                     print(f"API更新エラー: {e}")
-            time.sleep(1)  # スレッドのスリープ
+            time.sleep(5)  # スレッドのスリープ（頻度を下げて5秒ごとにチェック）
 
     def draw_analog_clock(self, current_time, surface):
         # 日付と曜日の表示（時計の上部）
@@ -353,6 +358,12 @@ class StandbyDisplay:
         running = True
         close_button_rect = None
 
+        # 初回起動時に右側UIを描画
+        self.right_half.fill(self.BLACK)
+        self.draw_weather(self.right_half)
+        self.draw_calendar(self.right_half)
+        self.screen.blit(self.right_half, (self.screen.get_width() // 2, 0))
+
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -370,13 +381,14 @@ class StandbyDisplay:
             self.draw_analog_clock(datetime.now(), self.left_half)
             self.screen.blit(self.left_half, (0, 0))
 
-            # キャッシュされたデータを使用して天気と予定を描画（1秒ごと）
-            if int(time.time()) > self.last_weather_update:
+            # キャッシュされたデータを使用して天気と予定を描画（5分ごと）
+            current_time = int(time.time())
+            if current_time - self.last_ui_update >= self.ui_update_interval:
                 self.right_half.fill(self.BLACK)
                 self.draw_weather(self.right_half)
                 self.draw_calendar(self.right_half)
                 self.screen.blit(self.right_half, (self.screen.get_width() // 2, 0))
-                self.last_weather_update = int(time.time())
+                self.last_ui_update = current_time
             
             # 閉じるボタンを描画
             close_button_rect = self.draw_close_button()
