@@ -225,7 +225,7 @@ class StandbyDisplay:
         surface.blit(temp_text, (start_x, start_y + 50))
 
         humidity_text = self.small_font.render(
-            f'💧 {self._weather_cache["humidity"]}%', 
+            f'{self._weather_cache["humidity"]}%', 
             True, (150, 200, 255)  # 薄い青色で湿度を表現
         )
         surface.blit(humidity_text, (start_x, start_y + 90))
