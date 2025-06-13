@@ -88,6 +88,8 @@ class StandbyDisplay:
 
         self.last_api_update = 0
         self.ui_update_interval = 300  # 右側UI更新間隔: 5分ごと（API更新と同じ）
+        
+        self.right_half_needs_update = True
 
         # API更新用のスレッドを開始
         self.api_thread = threading.Thread(target=self._update_api_data, daemon=True)
@@ -104,7 +106,7 @@ class StandbyDisplay:
                     self._calendar_cache = self.fetch_calendar_events()
                     self.last_api_update = current_time
                     # 右側UIも同時に再描画するようフラグを設定（次のメインループで描画される）
-                    self.last_ui_update = 0
+                    self.right_half_needs_update = True
                 except Exception as e:
                     print(f"API更新エラー: {e}")
             time.sleep(5)  # スレッドのスリープ（頻度を下げて5秒ごとにチェック）
@@ -363,6 +365,7 @@ class StandbyDisplay:
         self.draw_weather(self.right_half)
         self.draw_calendar(self.right_half)
         self.screen.blit(self.right_half, (self.screen.get_width() // 2, 0))
+        self.right_half_needs_update = False
 
         while running:
             for event in pygame.event.get():
@@ -383,12 +386,13 @@ class StandbyDisplay:
 
             # キャッシュされたデータを使用して天気と予定を描画（5分ごと）
             current_time = int(time.time())
-            if current_time - self.last_ui_update >= self.ui_update_interval:
+            if current_time - self.last_ui_update >= self.ui_update_interval or self.right_half_needs_update:
                 self.right_half.fill(self.BLACK)
                 self.draw_weather(self.right_half)
                 self.draw_calendar(self.right_half)
                 self.screen.blit(self.right_half, (self.screen.get_width() // 2, 0))
                 self.last_ui_update = current_time
+                self.right_half_needs_update = False
             
             # 閉じるボタンを描画
             close_button_rect = self.draw_close_button()
