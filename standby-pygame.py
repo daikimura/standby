@@ -218,17 +218,17 @@ class StandbyDisplay:
         condition_text = self.font.render(self._weather_cache['condition'], True, self.WHITE)
         surface.blit(condition_text, (start_x, start_y))
 
-        # 気温と湿度を横に並べて表示
-        temp_text = self.small_font.render(
-            f'気温: {self._weather_cache["temp"]}°C', 
-            True, self.WHITE
-        )
-        humidity_text = self.small_font.render(
-            f'湿度: {self._weather_cache["humidity"]}%', 
+        temp_text = self.font.render(
+            f'{self._weather_cache["temp"]}°C', 
             True, self.WHITE
         )
         surface.blit(temp_text, (start_x, start_y + 50))
-        surface.blit(humidity_text, (start_x + 150, start_y + 50))  # 気温の右側に表示
+
+        humidity_text = self.small_font.render(
+            f'💧 {self._weather_cache["humidity"]}%', 
+            True, (150, 200, 255)  # 薄い青色で湿度を表現
+        )
+        surface.blit(humidity_text, (start_x, start_y + 90))
 
     def get_calendar_service(self, account_type):
         creds = None
