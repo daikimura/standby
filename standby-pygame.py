@@ -128,29 +128,31 @@ class StandbyDisplay:
         center = (surface.get_width() // 2, surface.get_height() // 2)
         clock_radius = min(surface.get_width(), surface.get_height()) // 2 - 50
 
-        # 時計の外枠
-        pygame.draw.circle(surface, self.WHITE, center, clock_radius, 2)
-
         # 数字用のフォントを作成
         number_font = pygame.font.Font(None, 36)
 
-        # 目盛りと数字の描画
-        for i in range(12):
-            angle = i * 30 - 90
+        for i in range(60):
+            angle = i * 6 - 90  # 6度ずつ（360度 / 60分）
             rad = math.radians(angle)
+            
+            if i % 5 == 0:
+                start_x = center[0] + int((clock_radius - 25) * math.cos(rad) + 0.5)
+                start_y = center[1] + int((clock_radius - 25) * math.sin(rad) + 0.5)
+                end_x = center[0] + int(clock_radius * math.cos(rad) + 0.5)
+                end_y = center[1] + int(clock_radius * math.sin(rad) + 0.5)
+                pygame.draw.aaline(surface, self.WHITE, (start_x, start_y), (end_x, end_y), 3)
+            else:
+                start_x = center[0] + int((clock_radius - 10) * math.cos(rad) + 0.5)
+                start_y = center[1] + int((clock_radius - 10) * math.sin(rad) + 0.5)
+                end_x = center[0] + int(clock_radius * math.cos(rad) + 0.5)
+                end_y = center[1] + int(clock_radius * math.sin(rad) + 0.5)
+                pygame.draw.aaline(surface, self.WHITE, (start_x, start_y), (end_x, end_y), 1)
 
-            # 目盛りの描画
-            start_x = center[0] + int((clock_radius - 20) * math.cos(rad) + 0.5)
-            start_y = center[1] + int((clock_radius - 20) * math.sin(rad) + 0.5)
-            end_x = center[0] + int(clock_radius * math.cos(rad) + 0.5)
-            end_y = center[1] + int(clock_radius * math.sin(rad) + 0.5)
-            pygame.draw.aaline(surface, self.WHITE, (start_x, start_y), (end_x, end_y), 1)
-
-            # 数字の描画
+        for i in range(12):
             number = str(12 if i == 0 else i)
             number_rad = math.radians(i * 30 - 90)
-            number_x = center[0] + int((clock_radius - 40) * math.cos(number_rad))
-            number_y = center[1] + int((clock_radius - 40) * math.sin(number_rad))
+            number_x = center[0] + int((clock_radius - 45) * math.cos(number_rad))
+            number_y = center[1] + int((clock_radius - 45) * math.sin(number_rad))
 
             number_surface = number_font.render(number, True, self.WHITE)
             number_rect = number_surface.get_rect(center=(number_x, number_y))
@@ -177,13 +179,11 @@ class StandbyDisplay:
         minute_angle = precise_minute * 6 - 90
         second_angle = precise_second * 6 - 90
 
-        # 針を描画
-        draw_hand(hour_angle, hour_length, self.WHITE, 2)
-        draw_hand(minute_angle, minute_length, self.WHITE, 2)
-        draw_hand(second_angle, second_length, self.RED, 1)
+        draw_hand(hour_angle, hour_length, self.WHITE, 6)  # 時針を太く
+        draw_hand(minute_angle, minute_length, self.WHITE, 4)  # 分針を太く
+        draw_hand(second_angle, second_length, self.RED, 2)  # 秒針も少し太く
 
-        # 中心点を描画
-        pygame.draw.circle(surface, self.RED, center, 3)
+        pygame.draw.circle(surface, self.RED, center, 5)
 
     def fetch_weather(self):
         try:
