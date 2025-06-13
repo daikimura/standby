@@ -228,7 +228,7 @@ class StandbyDisplay:
             f'{self._weather_cache["humidity"]}%', 
             True, (150, 200, 255)  # 薄い青色で湿度を表現
         )
-        surface.blit(humidity_text, (start_x, start_y + 90))
+        surface.blit(humidity_text, (start_x + 150, start_y + 50))
 
     def get_calendar_service(self, account_type):
         creds = None
