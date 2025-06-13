@@ -123,7 +123,7 @@ class StandbyDisplay:
             rad = math.radians(angle)
             end_x = center[0] + int(length * math.cos(rad) + 0.5)
             end_y = center[1] + int(length * math.sin(rad) + 0.5)
-            pygame.draw.aaline(surface, color, center, (end_x, end_y), thickness)
+            pygame.draw.line(surface, color, center, (end_x, end_y), thickness)
 
         center = (surface.get_width() // 2, surface.get_height() // 2)
         clock_radius = min(surface.get_width(), surface.get_height()) // 2 - 50
@@ -140,13 +140,13 @@ class StandbyDisplay:
                 start_y = center[1] + int((clock_radius - 25) * math.sin(rad) + 0.5)
                 end_x = center[0] + int(clock_radius * math.cos(rad) + 0.5)
                 end_y = center[1] + int(clock_radius * math.sin(rad) + 0.5)
-                pygame.draw.aaline(surface, self.WHITE, (start_x, start_y), (end_x, end_y), 3)
+                pygame.draw.line(surface, self.WHITE, (start_x, start_y), (end_x, end_y), 3)
             else:
                 start_x = center[0] + int((clock_radius - 10) * math.cos(rad) + 0.5)
                 start_y = center[1] + int((clock_radius - 10) * math.sin(rad) + 0.5)
                 end_x = center[0] + int(clock_radius * math.cos(rad) + 0.5)
                 end_y = center[1] + int(clock_radius * math.sin(rad) + 0.5)
-                pygame.draw.aaline(surface, self.WHITE, (start_x, start_y), (end_x, end_y), 1)
+                pygame.draw.line(surface, self.WHITE, (start_x, start_y), (end_x, end_y), 1)
 
         for i in range(12):
             number = str(12 if i == 0 else i)
