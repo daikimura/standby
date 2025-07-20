@@ -28,6 +28,9 @@ bash setup.sh
 sudo apt update
 sudo apt install -y python3-full python3-venv
 
+# 日本語フォントをインストール
+sudo apt install -y fonts-noto-cjk fonts-noto-cjk-extra
+
 # 仮想環境を作成
 python3 -m venv ~/standby_env
 
