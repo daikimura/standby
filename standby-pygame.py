@@ -190,8 +190,8 @@ class StandbyDisplay:
     def fetch_weather(self):
         try:
             # 現在の天気のみ取得
-            current_url = f"http://api.openweathermap.org/data/2.5/weather?zip={self.ZIP_CODE}&appid={self.OPENWEATHERMAP_API_KEY}&units=metric&lang=ja"
-            current_response = requests.get(current_url)
+            current_url = f"https://api.openweathermap.org/data/2.5/weather?zip={self.ZIP_CODE}&appid={self.OPENWEATHERMAP_API_KEY}&units=metric&lang=ja"
+            current_response = requests.get(current_url, timeout=30)
             current_data = current_response.json()
 
             weather = {
