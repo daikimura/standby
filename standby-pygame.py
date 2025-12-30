@@ -8,6 +8,13 @@ from datetime import datetime, timedelta
 import requests
 from dotenv import load_dotenv
 
+# MH-Z19C CO2センサー（Raspberry Piでのみ利用可能）
+try:
+    import mh_z19
+    MH_Z19_AVAILABLE = True
+except ImportError:
+    MH_Z19_AVAILABLE = False
+
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -85,6 +92,7 @@ class StandbyDisplay:
 
         self._weather_cache = None
         self._calendar_cache = None
+        self._co2_cache = None
 
         self.last_api_update = 0
         self.ui_update_interval = 300  # 右側UI更新間隔: 5分ごと（API更新と同じ）
@@ -104,6 +112,8 @@ class StandbyDisplay:
                 try:
                     self._weather_cache = self.fetch_weather()
                     self._calendar_cache = self.fetch_calendar_events()
+                    if MH_Z19_AVAILABLE:
+                        self._co2_cache = self.fetch_co2()
                     self.last_api_update = current_time
                     # 右側UIも同時に再描画するようフラグを設定（次のメインループで描画される）
                     self.right_half_needs_update = True
@@ -207,6 +217,17 @@ class StandbyDisplay:
             print(f"天気の取得に失敗: {e}")
             return None
 
+    def fetch_co2(self):
+        """MH-Z19C CO2センサーからCO2濃度を取得"""
+        try:
+            data = mh_z19.read()
+            if data and 'co2' in data:
+                return data['co2']
+            return None
+        except Exception as e:
+            print(f"CO2の取得に失敗: {e}")
+            return None
+
     def draw_weather(self, surface):
         if not self._weather_cache:
             return
@@ -233,10 +254,24 @@ class StandbyDisplay:
         surface.blit(temp_text, (start_x, start_y + 50))
 
         humidity_text = self.font.render(
-            f'{self._weather_cache["humidity"]}%', 
+            f'{self._weather_cache["humidity"]}%',
             True, (150, 200, 255)  # 薄い青色で湿度を表現
         )
         surface.blit(humidity_text, (start_x + 100, start_y + 50))  # 気温と湿度を近づける
+
+        # CO2表示（Raspberry Piでのみ、データがある場合）
+        if MH_Z19_AVAILABLE and self._co2_cache is not None:
+            co2_value = self._co2_cache
+            # CO2濃度に応じて色を変える
+            if co2_value >= 1500:
+                co2_color = (255, 100, 100)  # 赤色（換気が必要）
+            elif co2_value >= 1000:
+                co2_color = (255, 200, 100)  # オレンジ色（やや高め）
+            else:
+                co2_color = (100, 255, 150)  # 緑色（良好）
+
+            co2_text = self.font.render(f'{co2_value}ppm', True, co2_color)
+            surface.blit(co2_text, (start_x, start_y + 100))
 
     def get_calendar_service(self, account_type):
         creds = None
