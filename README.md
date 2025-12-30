@@ -34,6 +34,9 @@ python3 -m venv ~/standby_env
 # 依存関係をインストール
 ~/standby_env/bin/pip install -r requirements.txt
 
+# シリアルポートへのアクセス権限を付与（CO2センサー用）
+sudo usermod -a -G dialout $USER
+
 # 自動起動の設定
 mkdir -p ~/.config/autostart/
 cp ~/standby/standby.desktop ~/.config/autostart/

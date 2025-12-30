@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 # MH-Z19C CO2センサー（Raspberry Piでのみ利用可能）
 try:
-    import mh_z19
+    import serial
     MH_Z19_AVAILABLE = True
 except ImportError:
     MH_Z19_AVAILABLE = False
@@ -217,12 +217,19 @@ class StandbyDisplay:
             print(f"天気の取得に失敗: {e}")
             return None
 
-    def fetch_co2(self):
-        """MH-Z19C CO2センサーからCO2濃度を取得"""
+    def fetch_co2(self, device='/dev/ttyAMA0'):
+        """MH-Z19C CO2センサーからCO2濃度を取得（シリアル通信）"""
         try:
-            data = mh_z19.read()
-            if data and 'co2' in data:
-                return data['co2']
+            ser = serial.Serial(device, 9600, timeout=1)
+            command = bytes([0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79])
+            ser.write(command)
+            time.sleep(0.1)
+            response = ser.read(9)
+            ser.close()
+
+            if len(response) == 9 and response[0] == 0xFF and response[1] == 0x86:
+                co2 = response[2] * 256 + response[3]
+                return co2
             return None
         except Exception as e:
             print(f"CO2の取得に失敗: {e}")
