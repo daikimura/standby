@@ -95,9 +95,12 @@ class StandbyDisplay:
         self._co2_cache = None
 
         self.last_api_update = 0
+        self.last_co2_update = 0
         self.ui_update_interval = 300  # 右側UI更新間隔: 5分ごと（API更新と同じ）
-        
+        self.co2_update_interval = 5   # CO2更新間隔: 5秒ごと
+
         self.right_half_needs_update = True
+        self.co2_needs_update = True
 
         # API更新用のスレッドを開始
         self.api_thread = threading.Thread(target=self._update_api_data, daemon=True)
@@ -107,19 +110,28 @@ class StandbyDisplay:
         """APIデータを定期的に更新するスレッド"""
         while True:
             current_time = time.time()
-            api_update_interval = self.ui_update_interval  # 同じ間隔で更新（5分ごと）
+
+            # 天気・カレンダーの更新（5分ごと）
+            api_update_interval = self.ui_update_interval
             if current_time - self.last_api_update > api_update_interval:
                 try:
                     self._weather_cache = self.fetch_weather()
                     self._calendar_cache = self.fetch_calendar_events()
-                    if MH_Z19_AVAILABLE:
-                        self._co2_cache = self.fetch_co2()
                     self.last_api_update = current_time
-                    # 右側UIも同時に再描画するようフラグを設定（次のメインループで描画される）
                     self.right_half_needs_update = True
                 except Exception as e:
                     print(f"API更新エラー: {e}")
-            time.sleep(5)  # スレッドのスリープ（頻度を下げて5秒ごとにチェック）
+
+            # CO2の更新（5秒ごと）
+            if MH_Z19_AVAILABLE and current_time - self.last_co2_update > self.co2_update_interval:
+                try:
+                    self._co2_cache = self.fetch_co2()
+                    self.last_co2_update = current_time
+                    self.co2_needs_update = True
+                except Exception as e:
+                    print(f"CO2更新エラー: {e}")
+
+            time.sleep(1)  # 1秒ごとにチェック（CO2更新を素早く反映するため）
 
     def draw_analog_clock(self, current_time, surface):
         # 日付と曜日の表示（時計の上部）
@@ -434,15 +446,18 @@ class StandbyDisplay:
             self.draw_analog_clock(datetime.now(), self.left_half)
             self.screen.blit(self.left_half, (0, 0))
 
-            # キャッシュされたデータを使用して天気と予定を描画（5分ごと）
+            # キャッシュされたデータを使用して天気と予定を描画
+            # 右側UI全体は5分ごと、CO2は5秒ごとに更新
             current_time = int(time.time())
-            if current_time - self.last_ui_update >= self.ui_update_interval or self.right_half_needs_update:
+            if current_time - self.last_ui_update >= self.ui_update_interval or self.right_half_needs_update or self.co2_needs_update:
                 self.right_half.fill(self.BLACK)
                 self.draw_weather(self.right_half)
                 self.draw_calendar(self.right_half)
                 self.screen.blit(self.right_half, (self.screen.get_width() // 2, 0))
-                self.last_ui_update = current_time
+                if self.right_half_needs_update:
+                    self.last_ui_update = current_time
                 self.right_half_needs_update = False
+                self.co2_needs_update = False
             
             # 閉じるボタンを描画
             close_button_rect = self.draw_close_button()
